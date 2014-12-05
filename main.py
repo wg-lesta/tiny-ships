@@ -4,6 +4,12 @@
 from framework import *
 import math
 
+PlaneShape = [
+	( 2.0, -4.0),
+	( 0.0, 4.0),
+	( -2.4, -4.0),
+]
+
 class Ship(object):
 	vertices = [( 1.5, 0.0),
 				( 3.0, 5.0),
@@ -84,7 +90,12 @@ class ShipGame (Framework):
 		
 		gnd2 = self.world.CreateStaticBody()
 		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
-
+		
+		# Kill me
+		plane_test = self.world.CreateStaticBody(position=(10,0))
+		fixture = plane_test.CreatePolygonFixture(vertices=PlaneShape)
+	
+	
 	def Keyboard(self, key):
 		key_map = self.key_map
 		if key in key_map:
