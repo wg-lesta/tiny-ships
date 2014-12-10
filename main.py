@@ -40,9 +40,8 @@ class Ship(object):
 	def update_linear(self, throttle):
 		direction = self.body.GetWorldVector((0, 1))
 		self.body.ApplyForceToCenter(self.LINEAR_SPEED * throttle * direction, True)
-		self.linear_speed_sqr = self.body.linearVelocity.length
-		self.linear_speed_sqr *= self.linear_speed_sqr
-	
+		self.linear_speed_sqr = self.body.linearVelocity.lengthSquared
+
 	def update_angular(self, turn):
 		angular_impulse = self.ANGULAR_SPEED * self.linear_speed_sqr
 		if angular_impulse > self.ANGULAR_MAX_IMPULSE: angular_impulse = self.ANGULAR_MAX_IMPULSE
