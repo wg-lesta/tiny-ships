@@ -39,7 +39,7 @@ class BoidsSystem:
                                 plane.flight()
                                 g_is_key_up = False
                                 break
-            
+
             for boid in self._boids.itervalues():
                 if isinstance(boid, ScoutPlane):
                     boid.update(self._boids, self._obstacles, flagship)
@@ -383,6 +383,8 @@ class ScoutPlane(BaseDynamicEntity):
                         self._try_landing = False
                         self._state_landing = True
                         acceleration *= -1.0
+            elif self.get_fuel() == 0:
+                pass  # plane crashed ?
             else:
                 acceleration = self.flock(boids, obstacles)
         else:
