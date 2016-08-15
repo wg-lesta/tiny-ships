@@ -69,7 +69,7 @@ class PlaneManager():
         dir_angle = angle(dir, plane.body.linearVelocity)
         if math.fabs(dir_angle) > 0.1:
             plane.body.linearVelocity.Normalize()
-            plane.body.linearVelocity *= Plane.min_linear_speed
+            plane.body.linearVelocity *= Plane.max_linear_speed
             plane.angular_speed = plane.max_angular_speed
             if dir_angle > 0:
                 plane.turn = 1.0
