@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6e9e3165-b397-4d46-a219-0f91d384ae44}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>main.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <InterpreterVersion />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="data\themes\default\generate.py" />
+    <Compile Include="framework.py" />
+    <Compile Include="main.py" />
+    <Compile Include="pgu\gui\app.py" />
+    <Compile Include="pgu\gui\area.py" />
+    <Compile Include="pgu\gui\basic.py" />
+    <Compile Include="pgu\gui\button.py" />
+    <Compile Include="pgu\gui\const.py" />
+    <Compile Include="pgu\gui\container.py" />
+    <Compile Include="pgu\gui\deprecated.py" />
+    <Compile Include="pgu\gui\dialog.py" />
+    <Compile Include="pgu\gui\document.py" />
+    <Compile Include="pgu\gui\form.py" />
+    <Compile Include="pgu\gui\group.py" />
+    <Compile Include="pgu\gui\input.py" />
+    <Compile Include="pgu\gui\keysym.py" />
+    <Compile Include="pgu\gui\layout.py" />
+    <Compile Include="pgu\gui\menus.py" />
+    <Compile Include="pgu\gui\misc.py" />
+    <Compile Include="pgu\gui\pguglobals.py" />
+    <Compile Include="pgu\gui\select.py" />
+    <Compile Include="pgu\gui\slider.py" />
+    <Compile Include="pgu\gui\style.py" />
+    <Compile Include="pgu\gui\surface.py" />
+    <Compile Include="pgu\gui\table.py" />
+    <Compile Include="pgu\gui\textarea.py" />
+    <Compile Include="pgu\gui\theme.py" />
+    <Compile Include="pgu\gui\widget.py" />
+    <Compile Include="pgu\gui\__init__.py" />
+    <Compile Include="pgu\__init__.py" />
+    <Compile Include="pygame_framework.py" />
+    <Compile Include="pygame_gui.py" />
+    <Compile Include="settings.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\themes\default\box.down.png" />
+    <Content Include="data\themes\default\box.hover.png" />
+    <Content Include="data\themes\default\box.normal.png" />
+    <Content Include="data\themes\default\check.png" />
+    <Content Include="data\themes\default\config.txt" />
+    <Content Include="data\themes\default\console.input.focus.png" />
+    <Content Include="data\themes\default\console.input.normal.png" />
+    <Content Include="data\themes\default\console.png" />
+    <Content Include="data\themes\default\desktop.png" />
+    <Content Include="data\themes\default\dialog.bar.png" />
+    <Content Include="data\themes\default\dialog.png" />
+    <Content Include="data\themes\default\dot.down.png" />
+    <Content Include="data\themes\default\dot.hover.png" />
+    <Content Include="data\themes\default\dot.normal.png" />
+    <Content Include="data\themes\default\down.png" />
+    <Content Include="data\themes\default\filebrowser.folder.png" />
+    <Content Include="data\themes\default\idot.normal.png" />
+    <Content Include="data\themes\default\input.focus.png" />
+    <Content Include="data\themes\default\input.normal.png" />
+    <Content Include="data\themes\default\left.png" />
+    <Content Include="data\themes\default\list.item.down.png" />
+    <Content Include="data\themes\default\list.item.hover.png" />
+    <Content Include="data\themes\default\list.item.normal.png" />
+    <Content Include="data\themes\default\list.png" />
+    <Content Include="data\themes\default\notes.txt" />
+    <Content Include="data\themes\default\radio.png" />
+    <Content Include="data\themes\default\rdot.down.png" />
+    <Content Include="data\themes\default\rdot.hover.png" />
+    <Content Include="data\themes\default\rdot.normal.png" />
+    <Content Include="data\themes\default\right.png" />
+    <Content Include="data\themes\default\sbox.normal.png" />
+    <Content Include="data\themes\default\select.arrow.png" />
+    <Content Include="data\themes\default\select.option.hover.png" />
+    <Content Include="data\themes\default\select.option.normal.png" />
+    <Content Include="data\themes\default\select.options.png" />
+    <Content Include="data\themes\default\up.png" />
+    <Content Include="data\themes\default\vbox.normal.png" />
+    <Content Include="data\themes\default\vdot.down.png" />
+    <Content Include="data\themes\default\vdot.hover.png" />
+    <Content Include="data\themes\default\vdot.normal.png" />
+    <Content Include="data\themes\default\vsbox.normal.png" />
+    <Content Include="data\themes\default\x.png" />
+    <Content Include="data\themes\gray\box.down.png" />
+    <Content Include="data\themes\gray\box.normal.png" />
+    <Content Include="data\themes\gray\button.down.png" />
+    <Content Include="data\themes\gray\button.normal.png" />
+    <Content Include="data\themes\gray\checkbox.off.down.png" />
+    <Content Include="data\themes\gray\checkbox.off.normal.png" />
+    <Content Include="data\themes\gray\checkbox.on.down.png" />
+    <Content Include="data\themes\gray\checkbox.on.normal.png" />
+    <Content Include="data\themes\gray\config.txt" />
+    <Content Include="data\themes\gray\console.input.focus.png" />
+    <Content Include="data\themes\gray\console.input.normal.png" />
+    <Content Include="data\themes\gray\console.png" />
+    <Content Include="data\themes\gray\desktop.png" />
+    <Content Include="data\themes\gray\dialog.bar.png" />
+    <Content Include="data\themes\gray\dialog.close.down.png" />
+    <Content Include="data\themes\gray\dialog.close.normal.png" />
+    <Content Include="data\themes\gray\dialog.png" />
+    <Content Include="data\themes\gray\filebrowser.folder.png" />
+    <Content Include="data\themes\gray\input.focus.png" />
+    <Content Include="data\themes\gray\input.normal.png" />
+    <Content Include="data\themes\gray\list.item.normal.png" />
+    <Content Include="data\themes\gray\list.png" />
+    <Content Include="data\themes\gray\menu.down.png" />
+    <Content Include="data\themes\gray\menu.hover.png" />
+    <Content Include="data\themes\gray\menu.normal.png" />
+    <Content Include="data\themes\gray\menu.option.hover.png" />
+    <Content Include="data\themes\gray\menu.option.normal.png" />
+    <Content Include="data\themes\gray\radio.off.down.png" />
+    <Content Include="data\themes\gray\radio.off.normal.png" />
+    <Content Include="data\themes\gray\radio.on.down.png" />
+    <Content Include="data\themes\gray\radio.on.normal.png" />
+    <Content Include="data\themes\gray\select.arrow.down.png" />
+    <Content Include="data\themes\gray\select.arrow.normal.png" />
+    <Content Include="data\themes\gray\select.arrow.png" />
+    <Content Include="data\themes\gray\select.option.normal.png" />
+    <Content Include="data\themes\gray\select.options.png" />
+    <Content Include="data\themes\gray\select.selected.normal.png" />
+    <Content Include="data\themes\gray\slider.bar.normal.png" />
+    <Content Include="data\themes\gray\slider.png" />
+    <Content Include="data\themes\gray\tool.down.png" />
+    <Content Include="data\themes\gray\tool.normal.png" />
+    <Content Include="data\themes\tools\config.txt" />
+    <Content Include="pgu\gui\readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="data\" />
+    <Folder Include="data\themes\" />
+    <Folder Include="data\themes\default" />
+    <Folder Include="data\themes\gray" />
+    <Folder Include="data\themes\tools" />
+    <Folder Include="pgu" />
+    <Folder Include="pgu\gui" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

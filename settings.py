@@ -31,6 +31,10 @@ class fwSettings(object):
     enableContinuous=True     # Calculate time of impact
     enableSubStepping=False
     
+    minLinearVelocity = 10
+    maxLinearVelocity = 20
+    maxAngularVelocity = 75
+
     # Drawing
     drawStats=True
     drawShapes=True
@@ -71,9 +75,12 @@ checkboxes =( ("Warm Starting"   , "enableWarmStarting"),
               ("Single Step"     , "singleStep") )
 
 sliders = [
-    { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
-    { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
-    { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
+    { 'name' : 'hz'                , 'text' : 'Hertz'    ,          'min' : 5, 'max' : 200 },
+    { 'name' : 'positionIterations', 'text' : 'Pos Iters',          'min' : 0, 'max' : 100 },
+    { 'name' : 'velocityIterations', 'text' : 'Vel Iters',          'min' : 1, 'max' : 500 },
+    { 'name' : 'minLinearVelocity',  'text' : 'minLinearVelocity',  'min' : 5, 'max' : 50 },
+    { 'name' : 'maxLinearVelocity',  'text' : 'maxLinearVelocity',  'min' : 10, 'max' : 50 },
+    { 'name' : 'maxAngularVelocity', 'text' : 'maxAngularVelocity', 'min' : 1, 'max' : 100 },
 ]
 
 from optparse import OptionParser
