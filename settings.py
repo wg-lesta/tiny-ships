@@ -27,6 +27,9 @@ class fwSettings(object):
     hz=60.0
     velocityIterations=8
     positionIterations=3
+    AngularVelocity=5
+    LinearVelocityMin=25
+    LinearVelocityMax=50
     enableWarmStarting=True   # Makes physics results more accurate (see Box2D wiki)
     enableContinuous=True     # Calculate time of impact
     enableSubStepping=False
@@ -74,6 +77,10 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
+
+	{ 'name' : 'AngularVelocity',    'text' : 'Angular velocity', 'min' : 1,   'max' : 10 },
+	{ 'name' : 'LinearVelocityMin',  'text' : 'Velocity min',     'min' : 25,  'max' : 50 },
+	{ 'name' : 'LinearVelocityMax',  'text' : 'Velocity max',     'min' : 25,  'max' : 100 },
 ]
 
 from optparse import OptionParser
