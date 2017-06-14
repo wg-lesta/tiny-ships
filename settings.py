@@ -31,6 +31,11 @@ class fwSettings(object):
     enableContinuous=True     # Calculate time of impact
     enableSubStepping=False
     
+    # Plane settings
+    minLinearVelocity = 10
+    maxLinearVelocity = 30
+    angularVelocity = 5
+
     # Drawing
     drawStats=True
     drawShapes=True
@@ -74,6 +79,11 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
+
+    # Plane settings
+    { 'name' : 'minLinearVelocity',  'text' : 'min Velocity',  'min' : 5, 'max' : 50 },
+    { 'name' : 'maxLinearVelocity',  'text' : 'max Velocity',  'min' : 10, 'max' : 100 },
+    { 'name' : 'angularVelocity', 'text' : 'Angular Velocity', 'min' : 5, 'max' : 20 },
 ]
 
 from optparse import OptionParser
