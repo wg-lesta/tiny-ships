@@ -52,6 +52,10 @@ class fwSettings(object):
     singleStep=False
     onlyInit=False            # run the test's initialization without graphics, and then quit (for testing)
 
+    # Plane
+    planeAngularSpeed=4.5
+    planeLinearSpeed=50
+
 #             text                  variable
 checkboxes =( ("Warm Starting"   , "enableWarmStarting"), 
               ("Time of Impact"  , "enableContinuous"), 
@@ -74,6 +78,8 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
+    { 'name' : 'planeAngularSpeed', 'text' : 'Plane Angular', 'min' : 0, 'max' : 10 },
+    { 'name' : 'planeLinearSpeed', 'text' : 'Plane Linear', 'min' : 0, 'max' : 100 },
 ]
 
 from optparse import OptionParser

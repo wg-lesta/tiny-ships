@@ -2,13 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from framework import *
+from plane import PlaneCtrl, PLANE_SPAWN_KEY
 import math
-
-PlaneShape = [
-	( 2.0, -4.0),
-	( 0.0, 4.0),
-	( -2.4, -4.0),
-]
 
 class Ship(object):
 	vertices = [( 1.5, 0.0),
@@ -24,7 +19,6 @@ class Ship(object):
 	LINEAR_SPEED = 50
 	ANGULAR_SPEED = 0.1
 	ANGULAR_MAX_IMPULSE = 1.5
-
 
 	def __init__(self, world, vertices=None, density=0.1, position=(0, 0)):
 		
@@ -61,14 +55,20 @@ class Ship(object):
 
 class ShipGame (Framework):
 	name="Ship Game"
-	description="Keys: accel = w, reverse = s, left = a, right = d"
+	description="Keys: accel = w, reverse = s, left = a, right = d, plane = h"
 
 	def __init__(self):
 		super(ShipGame, self).__init__()
 		
 		# Top-down -- no gravity in the screen plane
 		self.world.gravity = (0, 0)
-		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', }
+		self.key_map = {
+			Keys.K_h: PLANE_SPAWN_KEY, 
+			Keys.K_w: 'up', 
+			Keys.K_s: 'down', 
+			Keys.K_a: 'left', 
+			Keys.K_d: 'right', 
+		}
 		
 		# Keep track of the pressed keys
 		self.pressed_keys = set()
@@ -84,16 +84,13 @@ class ShipGame (Framework):
 		
 		# A couple regions of differing traction
 		self.car = Ship(self.world)
+		self.planeCtrl = PlaneCtrl(self.world)
+
 		gnd1 = self.world.CreateStaticBody()
 		fixture = gnd1.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
 		
 		gnd2 = self.world.CreateStaticBody()
 		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
-		
-		# Kill me
-		plane_test = self.world.CreateStaticBody(position=(10,0))
-		fixture = plane_test.CreatePolygonFixture(vertices=PlaneShape)
-	
 	
 	def Keyboard(self, key):
 		key_map = self.key_map
@@ -111,6 +108,7 @@ class ShipGame (Framework):
 
 	def Step(self, settings):
 		self.car.update(self.pressed_keys)
+		self.planeCtrl.update(self.car.body, self.pressed_keys, settings)
 		super(ShipGame, self).Step(settings)
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
 
