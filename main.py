@@ -4,11 +4,35 @@
 from framework import *
 import math
 
-PlaneShape = [
-	( 2.0, -4.0),
-	( 0.0, 4.0),
-	( -2.4, -4.0),
-]
+CATEGORY_WATER = 0x0001
+CATEGORY_AIR = 0x0002
+
+class Plane(object):
+	vertices = [( 2.0, -4.0),
+				( 0.0, 4.0),
+				( -2.0, -4.0),
+				]
+
+	fixture = b2FixtureDef(
+		shape=b2PolygonShape(vertices=vertices),
+		density=0.1,
+		filter=b2Filter(
+			groupIndex=1,			#		 collide between this group (>0)
+			maskBits=CATEGORY_AIR,	# do not collide between air and water
+		)
+	)	
+	
+	def __init__(self, world, position=(0, 0), angle=0):
+	
+		self.linear_speed_sqr = 0
+		
+		self.body = world.CreateDynamicBody(
+			position=(position + (10 * math.cos(angle + math.pi / 2), 10 * math.sin(angle + math.pi / 2))),
+			angle=angle,
+			fixtures=Plane.fixture,
+		)
+		
+	#def update(self, keys):
 
 class Ship(object):
 	vertices = [( 1.5, 0.0),
@@ -61,14 +85,17 @@ class Ship(object):
 
 class ShipGame (Framework):
 	name="Ship Game"
-	description="Keys: accel = w, reverse = s, left = a, right = d"
-
+	description="Keys: accel = w, reverse = s, left = a, right = d, airplane = h"
+	airplane_is_set = False
+	airplane_in_air = 0
+	airplane_last = None
+	
 	def __init__(self):
 		super(ShipGame, self).__init__()
 		
 		# Top-down -- no gravity in the screen plane
 		self.world.gravity = (0, 0)
-		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', }
+		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', Keys.K_h: 'airplane', }
 		
 		# Keep track of the pressed keys
 		self.pressed_keys = set()
@@ -88,12 +115,7 @@ class ShipGame (Framework):
 		fixture = gnd1.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
 		
 		gnd2 = self.world.CreateStaticBody()
-		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
-		
-		# Kill me
-		plane_test = self.world.CreateStaticBody(position=(10,0))
-		fixture = plane_test.CreatePolygonFixture(vertices=PlaneShape)
-	
+		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))	
 	
 	def Keyboard(self, key):
 		key_map = self.key_map
@@ -113,6 +135,20 @@ class ShipGame (Framework):
 		self.car.update(self.pressed_keys)
 		super(ShipGame, self).Step(settings)
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
+		self.Print('Airplanes in air: %s' % self.airplane_in_air)
+		self.Print('Angle: %s' % self.car.body.angle)
+		if ('airplane' in self.pressed_keys):
+			if (not self.airplane_is_set and self.airplane_in_air < 5):
+				self.airplane_new = Plane(
+					self.world,
+					self.car.body.position,
+					self.car.body.angle
+				)
+				self.airplane_last = self.airplane_new
+				self.airplane_in_air += 1
+			self.airplane_is_set = True
+		else:
+			self.airplane_is_set = False
 
 if __name__=="__main__":
 	 main(ShipGame)
