@@ -17,23 +17,59 @@ class Plane(object):
 		shape=b2PolygonShape(vertices=vertices),
 		density=0.1,
 		filter=b2Filter(
-			groupIndex=1,			#		 collide between this group (>0)
+			groupIndex=0,			# do not collide between this group
 			maskBits=CATEGORY_AIR,	# do not collide between air and water
 		)
 	)	
 	
-	def __init__(self, world, position=(0, 0), angle=0):
-	
-		self.linear_speed_sqr = 0
+	def __init__(self, manager, world):
+		self.Manager = manager
+		self.World = world
 		
-		self.body = world.CreateDynamicBody(
-			position=(position + (10 * math.cos(angle + math.pi / 2), 10 * math.sin(angle + math.pi / 2))),
+	def appear(self, position=(0, 0), angle=0):
+		self.body = self.World.CreateDynamicBody(
+			position=(position + (
+				10 * math.cos(angle + math.pi / 2),
+				10 * math.sin(angle + math.pi / 2)
+			)),
 			angle=angle,
 			fixtures=Plane.fixture,
 		)
 		
+	def disappear(self):
+		self.body = None
+		
 	#def update(self, keys):
-
+	
+class PlaneManager(object):
+	
+	MAX_PLANES = 5
+	
+	airplane_is_set = False
+	airplane_in_air = 0
+	airplane_last = None
+	
+	def __init__(self, world, ship):
+		self.Hangar = []
+		self.World = world
+		self.Ship = ship
+		
+		for i in range(self.MAX_PLANES):
+			self.Hangar.append(Plane(self, self.World))
+	
+	def update(self, keys):
+		if ('airplane' in keys):
+			if (not self.airplane_is_set and self.airplane_in_air < self.MAX_PLANES):
+				self.airplane_new = self.Hangar[self.airplane_in_air].appear(
+					self.Ship.body.position,
+					self.Ship.body.angle
+				)				
+				self.airplane_last = self.airplane_new
+				self.airplane_in_air += 1
+			self.airplane_is_set = True
+		else:
+			self.airplane_is_set = False
+	
 class Ship(object):
 	vertices = [( 1.5, 0.0),
 				( 3.0, 5.0),
@@ -48,7 +84,6 @@ class Ship(object):
 	LINEAR_SPEED = 50
 	ANGULAR_SPEED = 0.1
 	ANGULAR_MAX_IMPULSE = 1.5
-
 
 	def __init__(self, world, vertices=None, density=0.1, position=(0, 0)):
 		
@@ -86,9 +121,6 @@ class Ship(object):
 class ShipGame (Framework):
 	name="Ship Game"
 	description="Keys: accel = w, reverse = s, left = a, right = d, airplane = h"
-	airplane_is_set = False
-	airplane_in_air = 0
-	airplane_last = None
 	
 	def __init__(self):
 		super(ShipGame, self).__init__()
@@ -111,6 +143,8 @@ class ShipGame (Framework):
 		
 		# A couple regions of differing traction
 		self.car = Ship(self.world)
+		self.planes = PlaneManager(self.world, self.car)
+		
 		gnd1 = self.world.CreateStaticBody()
 		fixture = gnd1.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
 		
@@ -133,23 +167,10 @@ class ShipGame (Framework):
 
 	def Step(self, settings):
 		self.car.update(self.pressed_keys)
+		self.planes.update(self.pressed_keys)
 		super(ShipGame, self).Step(settings)
+		
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
-		self.Print('Airplanes in air: %s' % self.airplane_in_air)
-		self.Print('Angle: %s' % self.car.body.angle)
-		if ('airplane' in self.pressed_keys):
-			if (not self.airplane_is_set and self.airplane_in_air < 5):
-				self.airplane_new = Plane(
-					self.world,
-					self.car.body.position,
-					self.car.body.angle
-				)
-				self.airplane_last = self.airplane_new
-				self.airplane_in_air += 1
-			self.airplane_is_set = True
-		else:
-			self.airplane_is_set = False
 
 if __name__=="__main__":
 	 main(ShipGame)
-
