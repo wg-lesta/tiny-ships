@@ -28,7 +28,7 @@ class fwSettings(object):
     velocityIterations=8
     positionIterations=3
     minPlaneLinearSpeed=10
-    maxPlaneLinearSpeed=20
+    maxPlaneLinearSpeed=50
     maxPlaneAngularSpeed=45
     enableWarmStarting=True   # Makes physics results more accurate (see Box2D wiki)
     enableContinuous=True     # Calculate time of impact
@@ -78,8 +78,8 @@ sliders = [
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
 	
-    { 'name' : 'minPlaneLinearSpeed',  'text' : 'Min plane linear speed',  'min' : 10, 'max' : 20  },
-    { 'name' : 'maxPlaneLinearSpeed',  'text' : 'Max plane linear speed',  'min' : 20, 'max' : 100 },
+    { 'name' : 'minPlaneLinearSpeed',  'text' : 'Min plane linear speed',  'min' : 10, 'max' : 25  },
+    { 'name' : 'maxPlaneLinearSpeed',  'text' : 'Max plane linear speed',  'min' : 50, 'max' : 100 },
     { 'name' : 'maxPlaneAngularSpeed', 'text' : 'Max plane angular speed', 'min' : 10, 'max' : 45  },
 ]
 

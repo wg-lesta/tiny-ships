@@ -8,24 +8,23 @@ CATEGORY_WATER = 0x0001
 CATEGORY_AIR = 0x0002
 
 class Plane(object):
-	STATE_READY = 1
-	STATE_IN_AIR = 2
-	STATE_RETURN = 3
+	STATE_READY         = 1
+	STATE_MOVE_TO_ORBIT = 2
+	STATE_KEEP_DIST     = 3
+	STATE_RETURN        = 4
+	
+	_density_coef = 100.0
 	
 	#distance between ship and airplanes
-	_pref_dist = 100	
+	_pref_dist = 100.0
 	_time_in_air = 0
-	_angle_to_next_point = math.pi / 9
-	_rotMatrix = [(math.cos(_angle_to_next_point), -math.sin(_angle_to_next_point)),
-				  (math.sin(_angle_to_next_point),  math.cos(_angle_to_next_point))
-				 ]
 	_vertices = [( 2.0,  -4.0),
 				 ( 0.0,   4.0),
 				 ( -2.0, -4.0),
 				]
-	fixture = b2FixtureDef(
+	_fixture = b2FixtureDef(
 		shape=b2PolygonShape(vertices=_vertices),
-		density=0.1,
+		density=0.1 / _density_coef,# make mass of plane lesser
 		filter=b2Filter(
 			groupIndex=0,			# do not collide between this group
 			maskBits=CATEGORY_AIR,	# do not collide between air and water
@@ -36,22 +35,17 @@ class Plane(object):
 		self.world = world
 		self.shipBody = ship
 		self.targetPlane = None
-		self.targetPoint = None
 		
 		self._state = Plane.STATE_READY
 		self.cur_lin_speed = 0
-		self.cur_lin_speed_sqr = 0
 		self.min_lin_speed = 0
-		self.max_lin_speed = 0
-		
-		self.cur_ang_speed = 0
+		self.max_lin_speed = 0		
 		self.max_ang_speed = 0
-		self.max_ang_impulse = 1.5
 		
-		self.body = self.world.CreateDynamicBody(
+		self.body = world.CreateDynamicBody(
 			position=ship.GetWorldVector((0, 1)) * 10,
 			angle=ship.angle,
-			fixtures=Plane.fixture,
+			fixtures=Plane._fixture,
 		)
 		self.joint = world.CreateWeldJoint(
 			bodyA=self.body,
@@ -60,15 +54,15 @@ class Plane(object):
 		)
 		
 	def appear(self, target):		
-		self._state = Plane.STATE_IN_AIR
+		self._state = Plane.STATE_MOVE_TO_ORBIT
 		self.world.DestroyJoint(self.joint)
 		self.joint = None
 		self.body.angularVelocity = 0	
 		self.targetPlane = target
-			
+		
 		self.shipSpeed = self.body.linearVelocity.length
 		self.body.linearVelocity = self.body.GetWorldVector((0, 1))
-		self.body.linearVelocity *= max(self.min_lin_speed, self.shipSpeed)		
+		self.body.linearVelocity *= max(self.min_lin_speed, self.shipSpeed)
 		return self
 		
 	#moving airplane to hangar position and joint it. Set airplane ready to flight
@@ -85,14 +79,13 @@ class Plane(object):
 		self._state = Plane.STATE_READY
 		self.time_in_air = 0
 		
-	def _rotateVect2(self, vec, mat):
-		return ((vec[0] * mat[0][0] + vec[1] * mat[0][1]) ,(vec[0] * mat[1][0] + vec[1] * mat[1][1]))
-	def _getNextTargetPoint(self):
-		self.dist_till_ship = self.body.position - self.shipBody.position
-		self.dist_till_ship /= self.dist_till_ship.length
-		self.dist_till_ship *= self._pref_dist
-		self.dist_till_ship = self._rotateVect2(self.dist_till_ship, self._rotMatrix)
-		return self.shipBody.position + self.dist_till_ship
+	def _rotateVect(self, vec, ang):
+		return b2Vec2(
+			(vec[0] * math.cos(ang) + vec[1] * -math.sin(ang)),
+			(vec[0] * math.sin(ang) + vec[1] *  math.cos(ang))
+		)
+	def _scalarMult(self, vec1, vec2):
+		return vec1[0] * vec2[0] + vec1[1] * vec2[1]
 	def _leftTurn(self, vec1, vec2):
 		lt = vec1[0] * vec2[1] - vec1[1] * vec2[0]
 		if (lt > 0):
@@ -100,7 +93,7 @@ class Plane(object):
 		if (lt < 0):
 			return -1
 		return 0
-		
+	
 	def getTimeInAir(self):
 		return self._time_in_air
 	def getState(self):
@@ -108,70 +101,86 @@ class Plane(object):
 	def setStateToReturn(self):
 		self._state = Plane.STATE_RETURN
 
-	def update_linear(self, throttle, in_return = False):
-		direction = self.body.GetWorldVector((0, 1))
+	def update_vel(self, rec_lin_speed, rec_ang_speed, hz):
+		delta_hz = (hz / 60.0) 
 		self.cur_lin_speed = self.body.linearVelocity.length
-		self.body.ApplyForceToCenter(self.cur_lin_speed * throttle * direction, True)
+		dir_face = self.body.GetWorldVector((0, 1))
+		dir_ship = self.shipBody.position - self.body.position
 		
-		dir_vel = self.body.linearVelocity + (0, 0)
-		self.cur_lin_speed = self.body.linearVelocity.length		
-		dir_vel /= self.cur_lin_speed
-		scalar = direction[0] * dir_vel[0] + direction[1] * dir_vel[1]	#if >0 then we go forward
-		
+		if (self._state == self.STATE_KEEP_DIST and self.targetPlane != None):
+			if ((self.targetPlane.body.position - self.body.position).length < self._pref_dist and rec_lin_speed * 0.9 > self.min_lin_speed):
+				self.cur_lin_speed *= 0.95
+	
+		if (self.cur_lin_speed < rec_lin_speed):
+			self.cur_lin_speed += 1 / delta_hz
+		elif (self.cur_lin_speed > rec_lin_speed):
+			self.cur_lin_speed -= 1 / delta_hz
 		if (self.cur_lin_speed > self.max_lin_speed):
-			if (scalar > 0):
-				throttle = -1
-			else:
-				throttle = 2
-			self.body.ApplyForceToCenter(self.cur_lin_speed * throttle * direction, True)
-		elif (self.cur_lin_speed < self.min_lin_speed):
-			if (scalar > 0):
-				throttle = 1
-			self.body.ApplyForceToCenter(self.cur_lin_speed * throttle * direction, True)
+			self.cur_lin_speed -= 1 / delta_hz
+		vec_move = dir_face * self.cur_lin_speed
 		
-		self.cur_lin_speed_sqr = self.body.linearVelocity.lengthSquared
+		self.body.ApplyForceToCenter(vec_move - self.body.linearVelocity, True)
+					
+		turn = rec_ang_speed / 10.0 / Plane._density_coef
+		need_to_reduce_radius = False
+		if (self._state == self.STATE_KEEP_DIST and dir_ship.length > self._pref_dist * 1.05 and
+			(self.body.angularVelocity < self.max_ang_speed / 60.0)):
+			need_to_reduce_radius = True
+		scalar = self._scalarMult(dir_ship / dir_ship.length, dir_face)
 		
-	def update_angular(self, turn, hz):		
-		turn /= 20.0
-		if ((self.body.angularVelocity * hz > self.max_ang_speed   and turn > 0) or 
-			(self.body.angularVelocity * hz < - self.max_ang_speed and turn < 0)):
-			turn *= -1
-		self.body.ApplyAngularImpulse(turn, True)
-	#	self.body.ApplyTorque(-turn, True)
+		if (self._state == self.STATE_RETURN):
+			if (self.body.angularVelocity < turn):
+				turn = -self.body.angularVelocity
+			elif (self.body.angularVelocity > 0 and turn > 0):
+				turn *= -1
+		elif (need_to_reduce_radius):
+			if (scalar > 0.1 and turn > 0):			
+				turn *= -1
+		else:
+			if ((self.body.angularVelocity > rec_ang_speed / 60.0) and turn > 0):
+				turn *= -1
+			if (scalar > 0 and turn > 0):			
+				turn *= -1
 		
+		self.body.ApplyTorque(turn, True)
 		
-	def update(self, settings):			
+		if (self._state == Plane.STATE_MOVE_TO_ORBIT and self.shipBody.position != self.body.position and scalar > 0):
+			self._state = self.STATE_KEEP_DIST
+		if (self._state == self.STATE_RETURN and dir_ship.length < 5):
+			self.disappear()
+			
+
+	def update(self, settings):	
 		self.min_lin_speed = settings.minPlaneLinearSpeed
 		self.max_lin_speed = settings.maxPlaneLinearSpeed
 		self.max_ang_speed = settings.maxPlaneAngularSpeed
 		
 		if (self._state == Plane.STATE_READY):
-			return
-	
+			return	
 		self._time_in_air += 1
-			
-		if (self._state == Plane.STATE_IN_AIR):
-			throttle = 0
-			if (self.targetPlane != None):
-				if ((self.targetPlane.body.position - self.body.position).length < self._pref_dist):
-					throttle -= 1
-				else:
-					throttle += 1
-			else:
-				throttle += 1
-			self.update_linear(throttle)
 		
-			point_to_move = self._getNextTargetPoint()
-			vec_to_move = point_to_move - self.body.position
-			
-			turn = self._leftTurn(self.body.GetWorldVector((0, 1)), vec_to_move)
-			self.update_angular(turn, settings.hz)
+		pref_lin_speed = self.max_lin_speed
+		pref_ang_speed = self.max_ang_speed
+		linVel_on_maxAng = self._pref_dist * (self.max_ang_speed / 60.0)
+		if (linVel_on_maxAng > self.max_lin_speed):
+			pref_ang_speed = self.max_lin_speed / self._pref_dist * 60.0
+		elif (linVel_on_maxAng < self.min_lin_speed):
+			pref_lin_speed = self.min_lin_speed
+		else:
+			pref_lin_speed = linVel_on_maxAng
+				
+		if (self._state == Plane.STATE_MOVE_TO_ORBIT):
+			self.update_vel(max(self.min_lin_speed, pref_lin_speed / 2.0), pref_ang_speed, settings.hz)			
+		if (self._state == Plane.STATE_KEEP_DIST):
+			self.update_vel(pref_lin_speed, pref_ang_speed, settings.hz)
+		if (self._state == Plane.STATE_RETURN):
+			self.update_vel(self.min_lin_speed, self.max_ang_speed, settings.hz)
 	
 class PlaneManager(object):
 	
 	MAX_PLANES = 5
 	
-	_time_to_return = 25	# in sec
+	_time_to_return = 60	# in sec
 	
 	airplane_last = None
 	
@@ -204,8 +213,8 @@ class PlaneManager(object):
 				self.airplane_last = self.airplane_new
 				self._waiting_for_takeoff = True
 
-	#		if (self.Hangar[i].getTimeInAir() > PlaneManager._time_to_return * settings.hz and self.Hangar[i].getState() == Plane.STATE_IN_AIR):
-	#			self.Hangar[i].setStateToReturn()
+			if (self.Hangar[i].getTimeInAir() > PlaneManager._time_to_return * settings.hz and self.Hangar[i].getState() != Plane.STATE_READY):
+				self.Hangar[i].setStateToReturn()
 
 			self.Hangar[i].update(settings)
 
@@ -316,18 +325,30 @@ class ShipGame (Framework):
 
 	def Step(self, settings):
 		self.car.update(self.pressed_keys)
+		# used hz to draw smoothly, mb should use fps
 		self.planes.update(self.pressed_keys, settings)
 		super(ShipGame, self).Step(settings)
 		
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
+		self.Print('Min/Max linear speed of plane: %.1f/%.1f' % (settings.minPlaneLinearSpeed, settings.maxPlaneLinearSpeed))
+		self.Print('Max angular speed of plane: %.1f' % settings.maxPlaneAngularSpeed)
 		for i in range(PlaneManager.MAX_PLANES):
+			self.Print('=--------------------------------------------------- ')
 			self.Print('Time in Air for plane #%i is : %.1f sec.' % (i+1, self.planes.Hangar[i].getTimeInAir() / float(settings.hz)))
 			lin_speed = 0;
 			ang_speed = 0;
+			delta_hz = settings.hz / 60.0
 			if (self.planes.Hangar[i].getState() != Plane.STATE_READY):
 				lin_speed = self.planes.Hangar[i].body.linearVelocity.length
-				ang_speed = self.planes.Hangar[i].body.angularVelocity * settings.hz
-			self.Print('   Linear/Angular speed : %.1f/%.1f' % (lin_speed, ang_speed))
+				ang_speed = self.planes.Hangar[i].body.angularVelocity * settings.hz / delta_hz
+			self.Print('   Linear/Angular speed : %+06.1f/%+05.1f' % (lin_speed, ang_speed))
+			self.Print('   Distance to ship is %+06.1f' % (self.planes.Hangar[i].body.position - self.car.body.position).length)
+			self.Print('   State is %d' % self.planes.Hangar[i].getState())
+			target_dist = 0
+			if (self.planes.Hangar[i].targetPlane != None):
+				target_dist = (self.planes.Hangar[i].targetPlane.body.position - self.planes.Hangar[i].body.position).length
+			self.Print('   Distance to next plane = %.1f' % target_dist)
+			
 			
 if __name__=="__main__":
 	 main(ShipGame)
