@@ -151,23 +151,9 @@ class ShipGame (Framework):
 		super(ShipGame, self).Step(settings)
 		
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
-		self.Print('Min/Max linear speed of plane: %.1f/%.1f' % (settings.minPlaneLinearSpeed, settings.maxPlaneLinearSpeed))
-		self.Print('Max angular speed of plane: %.1f' % settings.maxPlaneAngularSpeed)
 		for i in range(PlaneManager.MAX_PLANES):
 			self.Print('=--------------------------------------------------- ')
 			self.Print('Time in air for plane #%i is : %.1f sec.' % (i+1, self.planes.Hangar[i].getTimeInAir()))
-			lin_speed = 0;
-			ang_speed = 0;
-			if (self.planes.Hangar[i].inAir()):
-				lin_speed = self.planes.Hangar[i].body.linearVelocity.length
-				ang_speed = math.degrees(self.planes.Hangar[i].body.angularVelocity)
-			self.Print('   Linear/Angular speed : %+06.1f/%+05.1f' % (lin_speed, ang_speed))
-			self.Print('   Distance to ship is %+06.1f' % (self.planes.Hangar[i].body.position - self.car.body.position).length)
-			target_dist = 0
-			if (self.planes.Hangar[i].targetPlane != None):
-				target_dist = (self.planes.Hangar[i].targetPlane.body.position - self.planes.Hangar[i].body.position).length
-			self.Print('   Distance to next plane = %.1f' % target_dist)
-			
 			
 if __name__=="__main__":
 	 main(ShipGame)
