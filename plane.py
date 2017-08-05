@@ -182,7 +182,7 @@ class Plane(object):
 			# we are IN radius circle, so can fly like on orbit - sometime we will fly away
 			turn = (self.prefAngularSpeed - math.degrees(self.body.angularVelocity))
 			
-		if (math.fabs(turn) < 1):
+		if (abs(turn) < 1):
 			# when acceleretion is very small we will turn it a bit quicker to it's position
 			turn *= inDegree
 		else:

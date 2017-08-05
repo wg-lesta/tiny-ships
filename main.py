@@ -82,7 +82,7 @@ class Ship(object):
 		self.body.ApplyAngularImpulse( angular_impulse * turn, True )
 		
 	def isGoingForward(self):
-		if (math.fabs(self.body.angularVelocity) < 0.1):
+		if (abs(self.body.angularVelocity) < 0.1):
 			return True
 		return False
 
@@ -150,10 +150,13 @@ class ShipGame (Framework):
 		self.planes.update(self.pressed_keys, settings)
 		super(ShipGame, self).Step(settings)
 		
+		self.Print('')
+		self.Print('Ship')
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
 		for i in range(PlaneManager.MAX_PLANES):
-			self.Print('=--------------------------------------------------- ')
-			self.Print('Time in air for plane #%i is : %.1f sec.' % (i+1, self.planes.Hangar[i].getTimeInAir()))
+			self.Print('------------------------------------')
+			self.Print('Plane #%i' % (i+1))
+			self.Print('Time in air: %.1f sec.' % self.planes.Hangar[i].getTimeInAir())
 			
 if __name__=="__main__":
 	 main(ShipGame)
