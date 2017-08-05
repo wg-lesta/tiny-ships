@@ -2,13 +2,48 @@
 # -*- coding: utf-8 -*-
 
 from framework import *
+from plane     import *
 import math
 
-PlaneShape = [
-	( 2.0, -4.0),
-	( 0.0, 4.0),
-	( -2.4, -4.0),
-]
+class PlaneManager(object):
+	
+	MAX_PLANES = 5	
+	
+	airplane_last = None
+	
+	def __init__(self, world, ship):
+		self.Hangar = []
+		self.Ship = ship
+		
+		# Timer for planes interval takeoff
+		self._waiting_for_takeoff = False
+		self._time_passed = 0
+		
+		for i in range(self.MAX_PLANES):
+			self.Hangar.append(Plane(
+				world,
+				ship
+			))
+	
+	def update(self, keys, settings):	
+		self._waiting_time = 60
+		if (self.airplane_last != None and self.airplane_last.inHangar()):
+			self.airplane_last = None
+		
+		#Cooldown for launching airplanes == 1 sec.
+		if (self._waiting_for_takeoff):
+			self._time_passed += 1 / (settings.hz / 60.0)
+			if (self._time_passed >= self._waiting_time):
+				self._time_passed = 0
+				self._waiting_for_takeoff = False
+
+		for i in range(self.MAX_PLANES):			
+			if ('h' in keys and self.Hangar[i].inHangar() and not self._waiting_for_takeoff and self.Ship.isGoingForward()):
+				self.airplane_new = self.Hangar[i].appear(self.airplane_last)				
+				self.airplane_last = self.airplane_new
+				self._waiting_for_takeoff = True
+
+			self.Hangar[i].update(settings)
 
 class Ship(object):
 	vertices = [( 1.5, 0.0),
@@ -24,7 +59,6 @@ class Ship(object):
 	LINEAR_SPEED = 50
 	ANGULAR_SPEED = 0.1
 	ANGULAR_MAX_IMPULSE = 1.5
-
 
 	def __init__(self, world, vertices=None, density=0.1, position=(0, 0)):
 		
@@ -46,6 +80,11 @@ class Ship(object):
 		angular_impulse = self.ANGULAR_SPEED * self.linear_speed_sqr
 		if angular_impulse > self.ANGULAR_MAX_IMPULSE: angular_impulse = self.ANGULAR_MAX_IMPULSE
 		self.body.ApplyAngularImpulse( angular_impulse * turn, True )
+		
+	def isGoingForward(self):
+		if (abs(self.body.angularVelocity) < 0.1):
+			return True
+		return False
 
 	def update(self, keys):
 		
@@ -61,14 +100,14 @@ class Ship(object):
 
 class ShipGame (Framework):
 	name="Ship Game"
-	description="Keys: accel = w, reverse = s, left = a, right = d"
-
+	description="Keys: accel = w, reverse = s, left = a, right = d, airplane launch = h"
+	
 	def __init__(self):
 		super(ShipGame, self).__init__()
 		
 		# Top-down -- no gravity in the screen plane
 		self.world.gravity = (0, 0)
-		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', }
+		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', Keys.K_h: 'h', }
 		
 		# Keep track of the pressed keys
 		self.pressed_keys = set()
@@ -84,16 +123,13 @@ class ShipGame (Framework):
 		
 		# A couple regions of differing traction
 		self.car = Ship(self.world)
+		self.planes = PlaneManager(self.world, self.car)
+		
 		gnd1 = self.world.CreateStaticBody()
 		fixture = gnd1.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
 		
 		gnd2 = self.world.CreateStaticBody()
-		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
-		
-		# Kill me
-		plane_test = self.world.CreateStaticBody(position=(10,0))
-		fixture = plane_test.CreatePolygonFixture(vertices=PlaneShape)
-	
+		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))	
 	
 	def Keyboard(self, key):
 		key_map = self.key_map
@@ -111,9 +147,16 @@ class ShipGame (Framework):
 
 	def Step(self, settings):
 		self.car.update(self.pressed_keys)
+		self.planes.update(self.pressed_keys, settings)
 		super(ShipGame, self).Step(settings)
+		
+		self.Print('')
+		self.Print('Ship')
 		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
-
+		for i in range(PlaneManager.MAX_PLANES):
+			self.Print('------------------------------------')
+			self.Print('Plane #%i' % (i+1))
+			self.Print('Time in air: %.1f sec.' % self.planes.Hangar[i].getTimeInAir())
+			
 if __name__=="__main__":
 	 main(ShipGame)
-
