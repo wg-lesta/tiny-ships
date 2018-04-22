@@ -47,6 +47,17 @@ class fwSettings(object):
     drawCOMs=False            # Centers of mass
     pointSize=2.5             # pixel radius for drawing points
 
+    # Planes params
+    scoutPlaneVelocity      = 30
+    scoutMinPlaneVelocity   = 10
+    scoutMaxPlaneVelocity   = 100
+
+    scoutPlaneAngularVelocity       = 5
+    scoutMinPlaneAngularVelocity    = 1
+    scoutMaxPlaneAngularVelocity    = 15
+
+    scoutRotateSpeed = 10
+
     # Miscellaneous testbed options
     pause=False
     singleStep=False
@@ -74,6 +85,8 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
+    { 'name' : 'scoutPlaneVelocity'       , 'text' : 'Velocity'    , 'min' : 10, 'max' : 100 },
+    { 'name' : 'scoutPlaneAngularVelocity', 'text' : 'Ang velocity', 'min' : 1 , 'max' : 15 },
 ]
 
 from optparse import OptionParser

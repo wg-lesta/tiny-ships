@@ -1,74 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from framework import *
 import math
 
-PlaneShape = [
-	( 2.0, -4.0),
-	( 0.0, 4.0),
-	( -2.4, -4.0),
-]
-
-class Ship(object):
-	vertices = [( 1.5, 0.0),
-				( 3.0, 5.0),
-				( 2.8, 11.0),
-				( 1.0,20.0),
-				(-1.0,20.0),
-				(-2.8, 11.0),
-				(-3.0, 5.0),
-				(-1.5, 0.0),
-				]
-	
-	LINEAR_SPEED = 50
-	ANGULAR_SPEED = 0.1
-	ANGULAR_MAX_IMPULSE = 1.5
-
-
-	def __init__(self, world, vertices=None, density=0.1, position=(0, 0)):
-		
-		self.linear_speed_sqr = 0
-		
-		if vertices is None: vertices = Ship.vertices
-		
-		self.body = world.CreateDynamicBody(position=position)
-		self.body.CreatePolygonFixture(vertices=vertices, density=density)
-		self.body.angularDamping = 1.1
-		self.body.linearDamping = 1.1
-	
-	def update_linear(self, throttle):
-		direction = self.body.GetWorldVector((0, 1))
-		self.body.ApplyForceToCenter(self.LINEAR_SPEED * throttle * direction, True)
-		self.linear_speed_sqr = self.body.linearVelocity.lengthSquared
-
-	def update_angular(self, turn):
-		angular_impulse = self.ANGULAR_SPEED * self.linear_speed_sqr
-		if angular_impulse > self.ANGULAR_MAX_IMPULSE: angular_impulse = self.ANGULAR_MAX_IMPULSE
-		self.body.ApplyAngularImpulse( angular_impulse * turn, True )
-
-	def update(self, keys):
-		
-		throttle = 0
-		if 'up' in keys: throttle += 1
-		if 'down' in keys: throttle -= 1
-		self.update_linear(throttle)
-		
-		turn = 0
-		if 'left' in keys: turn += 1
-		if 'right' in keys: turn -= 1
-		self.update_angular(turn)
+from entities import *
+from framework import *
 
 class ShipGame (Framework):
 	name="Ship Game"
 	description="Keys: accel = w, reverse = s, left = a, right = d"
 
+	instance = None
+
 	def __init__(self):
 		super(ShipGame, self).__init__()
-		
+		ShipGame.instance = self
+		self._entities = []
+		self.step_settings = None
+
 		# Top-down -- no gravity in the screen plane
 		self.world.gravity = (0, 0)
-		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', }
+		self.key_map = {Keys.K_w: 'up', Keys.K_s: 'down', Keys.K_a: 'left', Keys.K_d: 'right', Keys.K_h: 'send_plane'}
 		
 		# Keep track of the pressed keys
 		self.pressed_keys = set()
@@ -83,18 +34,23 @@ class ShipGame (Framework):
 								 )
 		
 		# A couple regions of differing traction
-		self.car = Ship(self.world)
-		gnd1 = self.world.CreateStaticBody()
-		fixture = gnd1.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
-		
-		gnd2 = self.world.CreateStaticBody()
-		fixture = gnd2.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
-		
-		# Kill me
-		plane_test = self.world.CreateStaticBody(position=(10,0))
-		fixture = plane_test.CreatePolygonFixture(vertices=PlaneShape)
-	
-	
+		self.create_ground()
+		Carrier(self)
+
+	def create_ground(self):
+		gnd = self.world.CreateStaticBody()
+		gnd.CreatePolygonFixture(box=(9, 7, (-20, 15), math.radians(20)))
+
+		gnd = self.world.CreateStaticBody()
+		gnd.CreatePolygonFixture(box=(4, 8, (5, 40), math.radians(-40)))
+
+	def add_entity(self, entity):
+		self._entities.append(entity)
+
+	def remove_entity(self, entity):
+		if entity in self._entities:
+			self._entities.remove(entity)
+
 	def Keyboard(self, key):
 		key_map = self.key_map
 		if key in key_map:
@@ -110,10 +66,11 @@ class ShipGame (Framework):
 			super(ShipGame, self).KeyboardUp(key)
 
 	def Step(self, settings):
-		self.car.update(self.pressed_keys)
+		self.step_settings = settings
+		for _entity in self._entities:
+			_entity.update(self.pressed_keys)
+
 		super(ShipGame, self).Step(settings)
-		self.Print('Linear speed sqr: %s' % self.car.linear_speed_sqr)
 
 if __name__=="__main__":
 	 main(ShipGame)
-
