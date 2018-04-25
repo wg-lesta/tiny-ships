@@ -1,7 +1,7 @@
 from entities import Ship
 from entities.plane import Plane
 from states.state_machine import StateMachine
-from states.ship_states.carrier_states import *
+from states.ship_states import *
 
 
 class Carrier(Ship, StateMachine):
@@ -15,18 +15,19 @@ class Carrier(Ship, StateMachine):
         StateMachine.__init__(self)
         self._planes = []
 
-    def _init_states(self):
+    def init_states(self):
         self._states[self.SEND_STATE] = CarrierSendState(self)
         self._states[self.IDLE_STATE] = CarrierIdleState(self)
 
-    def _state_on_init(self):
+    @property
+    def state_on_init(self):
         return self._states[self.SEND_STATE]
 
     def to_send_state(self):
-        self._switch_state_to(self._states[self.SEND_STATE])
+        self.switch_state_to(self._states[self.SEND_STATE])
 
     def to_idle_state(self):
-        self._switch_state_to(self._states[self.IDLE_STATE])
+        self.switch_state_to(self._states[self.IDLE_STATE])
 
     def update(self, keys):
         super(Carrier, self).update(keys)

@@ -48,12 +48,13 @@ class fwSettings(object):
     pointSize=2.5             # pixel radius for drawing points
 
     # Planes params
-    scoutPlaneVelocity      = 30
-    scoutMinPlaneVelocity   = 10
-    scoutMaxPlaneVelocity   = 100
-
-    scoutPlaneAngularVelocity       = 5
-    scoutMinPlaneAngularVelocity    = 1
+    scoutPlaneDensity       = 0.00001
+    scoutAcceleration       = 0.25
+    scoutVelocity      = 35
+    scoutMinVelocity   = 30
+    scoutMaxVelocity   = 100
+    scoutTicksInAir = 20 * hz
+    scoutAngularVelocity            = 10
     scoutMaxPlaneAngularVelocity    = 15
 
     scoutRotateSpeed = 10
@@ -85,8 +86,8 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
-    { 'name' : 'scoutPlaneVelocity'       , 'text' : 'Velocity'    , 'min' : 10, 'max' : 100 },
-    { 'name' : 'scoutPlaneAngularVelocity', 'text' : 'Ang velocity', 'min' : 1 , 'max' : 15 },
+    { 'name' : 'scoutVelocity'       , 'text' : 'Velocity'    , 'min' : 10, 'max' : 100 },
+    { 'name' : 'scoutAngularVelocity', 'text' : 'Ang velocity', 'min' : 1 , 'max' : 15 },
 ]
 
 from optparse import OptionParser
