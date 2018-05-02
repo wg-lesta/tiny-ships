@@ -16,3 +16,7 @@ class EntityBase(object):
 
     def update(self, keys):
         pass
+
+    def destroy(self):
+        self.game.remove_entity(self)
+        self.game.world.DestroyBody(self.body)

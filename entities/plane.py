@@ -34,8 +34,16 @@ class Plane(EntityBase, StateMachine):
         return self.game.settings.scoutVelocity
 
     @property
+    def turn_radius(self):
+        return self.body.linearVelocity.length / self.game.settings.scoutAngularVelocity
+
+    @property
     def trajectory_radius(self):
-        return self.game.settings.scoutVelocity / self.game.settings.scoutAngularVelocity
+        return self.max_velocity / self.game.settings.scoutAngularVelocity * 10
+
+    @property
+    def front_vector(self):
+        return self.body.GetWorldVector((0, 1))
 
     def _vertices(self):
         return [
@@ -69,14 +77,29 @@ class Plane(EntityBase, StateMachine):
         self.ticks_in_air += 1
         self._state.update(keys)
 
+    def move_to(self, direction_vector):
+        angle = atan2(direction_vector.y, direction_vector.x) - pi/2
+        angle = self.normalize_angle(angle, self.body.angle) - self.body.angle
+        self.body.angularVelocity = angle
+        self.body.angularVelocity *= 2
+
+        force = cos(angle)
+        direction_vector.Normalize()
+        direction_vector *= min(force, self.game.settings.scoutAcceleration)
+
+        self.body.linearVelocity += direction_vector
+        self.normalize_speed()
+        self.normalize_rotation()
+
     def normalize_speed(self):
         velocity = self.body.linearVelocity
-        if velocity.length < self.min_velocity:
-            self.body.linearVelocity.Normalize()
-            self.body.linearVelocity *= self.min_velocity
-        elif velocity.length > self.max_velocity:
-            self.body.linearVelocity.Normalize()
-            self.body.linearVelocity *= self.max_velocity
+        force = velocity.length
+        if force < self.min_velocity:
+            force = self.min_velocity
+        elif force > self.max_velocity:
+            force = self.max_velocity
+
+        self.body.linearVelocity = self.front_vector * force
 
     def normalize_rotation(self):
         rotation_speed = self.body.angularVelocity
@@ -85,3 +108,22 @@ class Plane(EntityBase, StateMachine):
             self.body.angularVelocity = max_rotation_speed
         elif rotation_speed < -max_rotation_speed:
             self.body.angularVelocity = -max_rotation_speed
+
+    @staticmethod
+    def normalize_angle(angle, center):
+        return angle - (pi*2) * floor((angle + pi - center) / (pi*2))
+
+    @property
+    def evading_planes_vector(self):
+        vector = b2Vec2((0, 0))
+        for plane in self.ship.planes:
+            if plane == self:
+                continue
+
+            distance = self.body.position - plane.body.position
+            if distance.length > self.game.settings.scoutDistanceBetweenPlanes:
+                continue
+
+            vector += distance * (self.game.settings.scoutDistanceBetweenPlanes - distance.length)
+
+        return vector

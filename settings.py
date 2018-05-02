@@ -49,15 +49,14 @@ class fwSettings(object):
 
     # Planes params
     scoutPlaneDensity       = 0.00001
-    scoutAcceleration       = 0.25
-    scoutVelocity      = 35
-    scoutMinVelocity   = 30
+    scoutAcceleration       = 0.75
+    scoutVelocity      = 50
+    scoutMinVelocity   = 25
     scoutMaxVelocity   = 100
     scoutTicksInAir = 20 * hz
-    scoutAngularVelocity            = 10
-    scoutMaxPlaneAngularVelocity    = 15
-
-    scoutRotateSpeed = 10
+    scoutAngularVelocity            = 7
+    scoutMaxPlaneAngularVelocity    = 10
+    scoutDistanceBetweenPlanes      = 15
 
     # Miscellaneous testbed options
     pause=False
@@ -86,8 +85,8 @@ sliders = [
     { 'name' : 'hz'                , 'text' : 'Hertz'    , 'min' : 5, 'max' : 200 },
     { 'name' : 'positionIterations', 'text' : 'Pos Iters', 'min' : 0, 'max' : 100 },
     { 'name' : 'velocityIterations', 'text' : 'Vel Iters', 'min' : 1, 'max' : 500 },
-    { 'name' : 'scoutVelocity'       , 'text' : 'Velocity'    , 'min' : 10, 'max' : 100 },
-    { 'name' : 'scoutAngularVelocity', 'text' : 'Ang velocity', 'min' : 1 , 'max' : 15 },
+    { 'name' : 'scoutVelocity'       , 'text' : 'Velocity'    , 'min' : 30, 'max' : 75 },
+    { 'name' : 'scoutAngularVelocity', 'text' : 'Ang velocity', 'min' : 5 , 'max' : 10 },
 ]
 
 from optparse import OptionParser
