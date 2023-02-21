@@ -57,6 +57,7 @@ class PygameDraw(b2DrawExtended):
     """
     surface = None
     axisScale = 50.0
+    test = None
     def __init__(self, **kwargs): 
         b2DrawExtended.__init__(self, **kwargs)
         self.flipX = False
