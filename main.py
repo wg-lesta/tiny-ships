@@ -58,8 +58,7 @@ class Plane(object):
 			max_time = min(self.plane.MAX_FLIGHT_TIME, self.max_return_time)
 			time_left = max_time - self.plane.status_time
 			if self.plane.status_time > self.plane.MAX_FLIGHT_TIME:
-				print('Oops...')
-			# print(f'FLIGHT TIME: {self.status_time}, TIME TO SHIP: {time_to_ship}, TIME LEFT: {time_left}')
+				print('Oops...')  # Probably plane is crushed...
 			is_return = False if time_left > time_to_ship else True
 			if is_return and ship_distance < self.plane.min_landing_dist:
 				self.plane.landing()
@@ -72,37 +71,33 @@ class Plane(object):
 			angular_ship_coefficient = self.plane.get_angular_coefficient_pursuit_evade(
 				target=self.plane.ship, min_max_distance=ship_distance)
 			planes_coefficients = []
-			for p in self.planes:
+			for p in self.planes:  # Yes we follow not only previous but all planes
 				if p.status == 'flight':
-					if not is_return:
+					if not is_return:  # Trying to pursuit plane when scouting
 						c = self.plane.get_angular_coefficient_pursuit_evade(
 							target=p, min_max_distance=self.min_plane_dist)
-					else:
+					else:  # Trying to avoid plane when returning
 						c = self.plane.get_angular_coefficient_pursuit_evade(
 							target=p, is_evade=True, min_max_distance=0)
 				else:
 					c = 0
 				planes_coefficients.append(c)
 			angular_coefficient = angular_ship_coefficient + sum(planes_coefficients)
-			# print(f'ANGULAR COEFFICIENT: {angular_coefficient}')
 			# Limit angular speed between in interval [-ANGULAR_MAX_SPEED, ANGULAR_MAX_SPEED]
 			if angular_coefficient > 1.0:
 				angular_coefficient = 1.0
 			elif angular_coefficient < -1.0:
 				angular_coefficient = -1.0
 			angular_speed = self.plane.ANGULAR_MAX_SPEED * angular_coefficient
-			# print(f'ANGULAR SPEED: {angular_speed}')
 			linear_speed_sqr = self.plane.body.linearVelocity.lengthSquared
 			angular_impulse = mass * linear_speed_sqr * angular_speed
-			# print(f'ANGULAR IMPULSE: {angular_impulse}')
 			self.plane.body.ApplyAngularImpulse(angular_impulse, True)
-			# FIXME Workaround with ANGULAR_MAX_SPEED
+			# FIXME Workaround with ANGULAR_MAX_SPEED. Maybe limit ANGULAR_MAX_IMPULSE in the ship like?
 			av = self.plane.body.angularVelocity
 			if av > self.plane.ANGULAR_MAX_SPEED:
 				self.plane.body.angularVelocity = self.plane.ANGULAR_MAX_SPEED
 			elif av < -self.plane.ANGULAR_MAX_SPEED:
 				self.plane.body.angularVelocity = -self.plane.ANGULAR_MAX_SPEED
-			# print(f'ANGULAR SPEED 2: {self.plane.body.angularVelocity}')
 
 	def __init__(
 		self, world, vertices=None, density=0.1, position=(0, 0), ship=None,
@@ -111,6 +106,8 @@ class Plane(object):
 		self.linear_speed_sqr = 0
 		if vertices is None: vertices = Plane.vertices
 		self.body = world.CreateDynamicBody(position=position)
+		# FIXME Do we need to implement collision logic between plane-ground or plane-plane?
+		# Because they are small and flying high
 		self.body.CreatePolygonFixture(
 			vertices=vertices,
 			density=density,
@@ -152,6 +149,16 @@ class Plane(object):
 	def update_linear_speed(self):
 		mass = self.body.mass
 		forward_direction = self.body.GetWorldVector((0, 1))  # Normalized by default
+		force = mass * self.LINEAR_ACCELERATION * forward_direction
+		self.body.ApplyForceToCenter(force, True)
+		# FIXME Workaround LINEAR_MAX_SPEED Should I Control speed only with Force/Impulse?
+		plane_linear_velocity = self.body.linearVelocity
+		plane_linear_velocity_length = plane_linear_velocity.length
+		if plane_linear_velocity_length > 0:
+			if plane_linear_velocity_length > self.LINEAR_MAX_SPEED:
+				self.body.linearVelocity = plane_linear_velocity / plane_linear_velocity_length * self.LINEAR_MAX_SPEED
+			elif plane_linear_velocity_length < self.LINEAR_MIN_SPEED:
+				self.body.linearVelocity = plane_linear_velocity / plane_linear_velocity_length * self.LINEAR_MIN_SPEED
 		# plane_linear_velocity = self.body.linearVelocity
 		# if plane_linear_velocity.length < self.LINEAR_MIN_SPEED:
 		# 	impulse = mass * self.LINEAR_MIN_SPEED * forward_direction
@@ -161,16 +168,6 @@ class Plane(object):
 		# 	self.body.ApplyForceToCenter(force, True)
 		# else:  # Don't apply force if velocity > LINEAR_MAX_SPEED
 		# 	pass
-		# FIXME Workaround LINEAR_MAX_SPEED
-		force = mass * self.LINEAR_ACCELERATION * forward_direction
-		self.body.ApplyForceToCenter(force, True)
-		plane_linear_velocity = self.body.linearVelocity
-		plane_linear_velocity_length = plane_linear_velocity.length
-		if plane_linear_velocity_length > 0:
-			if plane_linear_velocity_length > self.LINEAR_MAX_SPEED:
-				self.body.linearVelocity = plane_linear_velocity / plane_linear_velocity_length * self.LINEAR_MAX_SPEED
-			elif plane_linear_velocity_length < self.LINEAR_MIN_SPEED:
-				self.body.linearVelocity = plane_linear_velocity / plane_linear_velocity_length * self.LINEAR_MIN_SPEED
 
 	def get_angular_coefficient_pursuit_evade(
 		self, target, is_evade=False, min_max_distance=None):
@@ -179,17 +176,15 @@ class Plane(object):
 		target_direction = target_position - position
 		target_distance = target_direction.Normalize()
 		min_time_to_target = target_distance / self.LINEAR_MAX_SPEED
-		# print(f'TARGET DISTANCE: {target_distance}')
-		# print(f'MIN TIME TO TARGET: {min_time_to_target}')
 		target_velocity = target.body.linearVelocity
 		future_target_position = target_position + target_velocity * min_time_to_target
 		future_target_direction = future_target_position - position
 		future_target_distance = future_target_direction.Normalize()
-		# print(f'FUTURE TARGET DISTANCE: {future_target_distance}')
 		forward_direction = self.body.GetWorldVector((0, 1))  # Normalized by default
+		# Yes, we could use atan2 like in takeoff,
+		# but dot/cross is more clear and convenient here from my point of view
 		future_dot = forward_direction.dot(future_target_direction)
 		future_cross = forward_direction.cross(future_target_direction)
-		# print(f'FUTURE DOT: {future_dot}, FUTURE CROSS: {future_cross}')
 		# Scale dot to [0, 1], where 0 - same direction, 1 - opposite direction
 		future_scaled_dot = 1 - 0.5 * (1 + future_dot)
 		if future_cross > 0:  # Counterclockwise
@@ -287,7 +282,8 @@ class Ship(object):
 					planes = [y for x, y in enumerate(self.planes) if x != i]
 					new_strategy = Plane.Scout(
 						plane=p, planes=planes, min_ship_dist=50, min_plane_dist=30,
-						max_return_time=15)
+						max_return_time=15  # With a margin due to MAX_FLIGHT_TIME = 20
+					)
 					p.strategy = new_strategy
 					new_plane_i = i
 					break
@@ -358,7 +354,6 @@ class ShipGame(Framework):
 			p.update(self.pressed_keys)
 			self.Print(f'Plane {i + 1} linear speed: {p.body.linearVelocity.length:.3f}')
 			self.Print(f'Plane {i + 1} angular speed: {p.body.angularVelocity:.3f}')
-			self.Print(f'Plane {i + 1} inertia: {p.body.inertia:.3f}')
 			self.Print(f'Plane {i + 1} status {p.status} time: {p.status_time:.3f}')
 
 		super(ShipGame, self).Step(settings)
